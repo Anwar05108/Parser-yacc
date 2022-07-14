@@ -374,7 +374,7 @@ variable_declaration : type_specifier declaration_list SEMICOLON
 
                        
                         
-                        $$ = new SymbolInfo($1->getName() + " " +$2->getName()+";", "SYMBOL_VARIABLE");
+                        $$ = new SymbolInfo($1->getName() + " " +$2->getName()+";", $1->getType());
                         logFile << "line number" << lineCount << ": " ;
                         logFile << "variable_declaration: type_specifier declaration_list SEMICOLON \n\n" << $$->getName() << endl<<endl;
 
@@ -424,7 +424,7 @@ variable_declaration : type_specifier declaration_list SEMICOLON
 declaration_list : declaration_list COMMA ID
 
             {
-$$ = new SymbolInfo($1->getName() + "," +$3->getName(), "SYMBOL_VARIABLE");
+$$ = new SymbolInfo($1->getName() + "," +$3->getName(), $3->getType());
    tempNodeVar.name = $3->getName();
     // tempNodeVar.type = $1->getName();
     tempNodeVar.arraySize = -1;
@@ -441,7 +441,7 @@ $$ = new SymbolInfo($1->getName() + "," +$3->getName(), "SYMBOL_VARIABLE");
             }
 | declaration_list COMMA ID LTHIRD CONST_INT RTHIRD
 {
-$$ = new SymbolInfo($1->getName() + "," +$3->getName()+"["+$5->getName()+"]", "SYMBOL_VARIABLE");
+$$ = new SymbolInfo($1->getName() + "," +$3->getName()+"["+$5->getName()+"]", $3->getType());
     tempNodeVar.name = $3->getName();
     // tempNodeVar.type = "array";
 
@@ -458,9 +458,9 @@ $$ = new SymbolInfo($1->getName() + "," +$3->getName()+"["+$5->getName()+"]", "S
 }
 | ID
 {
-$$ = new SymbolInfo($1->getName(), "SYMBOL_VARIABLE");
+$$ = new SymbolInfo($1->getName(), $1->getType());
     tempNodeVar.name = $1->getName();
-    tempNodeVar.type = "SYMBOL_VARIABLE";
+    tempNodeVar.type = $1->getType();
     tempNodeVar.arraySize = -1;
         variable_list.push_back(tempNodeVar);
     if(symbolTable.search($1->getName()) != NULL)
@@ -473,7 +473,7 @@ $$ = new SymbolInfo($1->getName(), "SYMBOL_VARIABLE");
     logFile << "declaration_list: ID \n\n" << $$->getName() << endl<<endl;
 }
 | ID LTHIRD CONST_INT RTHIRD{
-    $$ = new SymbolInfo($1->getName() + " [" + $3->getName()+"]", "SYMBOL_VARIABLE");
+    $$ = new SymbolInfo($1->getName() + " [" + $3->getName()+"]", $1->getType());
     tempNodeVar.name = $1->getName();
     tempNodeVar.type = "array";
     tempNodeVar.arraySize = stoi($3->getName());
@@ -585,14 +585,40 @@ expression_statement :  SEMICOLON
                     ;
 
 variable : ID{
-    $$ = new SymbolInfo($1->getName(), "SYMBOL_VARIABLE");
+    $$ = new SymbolInfo($1->getName(), $1->getType());
     logFile << "line number" << lineCount << ": " ;
     logFile << "variable : ID"<<endl<<endl ;
     logFile<< $$->getName() << endl<<endl;
 
 }
 | ID LTHIRD expression RTHIRD{
-    $$ = new SymbolInfo($1->getName()+"["+$3->getName()+"]", "SYMBOL_VARIABLE");
+    SymbolInfo *currentId = symbolTable.search($1->getName());
+    if(currentId == NULL)
+    {
+        errorFile << "line number" << lineCount << ": " ;
+        errorFile << "error: variable " << $1->getName() << " not declared" << endl;
+        errorCount++;
+    }
+     if(currentId->getType() != "array")
+    {
+        errorFile << "line number" << lineCount << ": " ;
+        errorFile << "error: variable " << $1->getName() << " is not an array" << endl;
+        errorCount++;
+    }
+     if(currentId->getArraySize() <= stoi($3->getName()))
+    {
+        errorFile << "line number" << lineCount << ": " ;
+        errorFile << "error: variable " << $1->getName() << " is out of range. array size: " << currentId->getArraySize() << endl;
+        errorCount++; 
+    }
+     if($3->getType() != "INT")
+    {
+        errorFile << "line number" << lineCount << ": " ;
+        errorFile << "error: index of variable " << $1->getName() << " is not of type INT" << endl;
+        errorCount++;
+    }
+    
+    $$ = new SymbolInfo($1->getName()+"["+$3->getName()+"]", $1->getType());
     logFile << "line number" << lineCount << ": " ;
     logFile << "variable : ID LTHIRD expression RTHIRD"<<endl<<endl ;
     logFile<< $$->getName() << endl<<endl;
@@ -607,6 +633,13 @@ expression : logic_expression{
 }
 
 | variable ASSIGNOP logic_expression{
+
+    // if($1->getType() != $3->getType())
+    // {
+    //     errorFile << "line number" << lineCount << ": " ;
+    //     errorFile << "error: variable " << $1->getName()<<" "<<$1->getType() << " is not of type " << $3->getType() << endl;
+    //     errorCount++;
+    // }
     $$ = new SymbolInfo($1->getName()+"="+$3->getName(), "SYMBOL_ASSIGNMENT_EXPRESSION");
     logFile << "line number" << lineCount << ": " ;
     logFile << "expression : variable ASSIGNOP logic expression"<<endl<<endl ;
@@ -675,6 +708,44 @@ term : unary_expression {
     logFile<< $$->getName() << endl<<endl;
 }
  | term MULOP unary_expression{
+
+    string leftType = $1->getType();
+    string rightType = $3->getType();
+    string mulOperator = $2->getName();
+    string type;
+    if(mulOperator == "%"){
+        if(leftType != "int" || rightType != "int"){
+            errorFile << "line number" << lineCount << ": " ;
+            errorFile << "error: modulo mulOperator can only be used with ints" << endl;
+            errorCount++;
+        }
+    }
+    else if(mulOperator == "*" || mulOperator == "/"){
+        if(leftType != "int" || rightType != "int"){
+            type = "float";
+            
+        }
+    }
+
+    if(mulOperator == "/" ){
+        if($3->getName() == "0"){
+            errorFile << "line number" << lineCount << ": " ;
+            errorFile << "error: division by zero" << endl;
+            errorCount++;
+        }
+    }
+
+    if( mulOperator == "%"){
+        if($3->getName() == "0"){
+            errorFile << "line number" << lineCount << ": " ;
+            errorFile << "error: modulo by zero" << endl;
+            errorCount++;
+        }
+    }
+    
+    
+
+
     $$ = new SymbolInfo($1->getName()+$2->getName()+$3->getName(), "SYMBOL_MUL_EXPRESSION");
     logFile << "line number" << lineCount << ": " ;
     logFile << "term : term MULOP unary_expression"<<endl<<endl ;
@@ -710,8 +781,8 @@ factor : variable
 {
     $$ = $1;
     logFile << "line number" << lineCount << ": " ;
-    logFile << "factor : variable"<<endl<<endl ;
-    logFile<< $$->getName() << endl<<endl;
+    logFile << "factor : variable\n\n" ;
+    logFile<< $$->getName() << "\n\n";
 }
  | ID LPAREN argument_list RPAREN
 {

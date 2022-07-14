@@ -608,5 +608,5 @@ line number15: start: program
 print all scopes
  ScopeTable: 1
 < a ,array >< c ,array >< i ,array >< main ,int >< j ,array >< func ,int >
-total no. of errors: 1
+total no. of errors: 4
 total no. of lines15
