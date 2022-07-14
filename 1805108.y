@@ -255,7 +255,7 @@ function_definition : type_specifier ID LPAREN parameter_list RPAREN  compound_s
                         }
                         parameter_list.clear();
                         logFile << "line number" << lineCount << ": " ;
-                        logFile << "func_definition : type_specifier ID LPAREN parameter_list RPAREN compound_statement";
+                        logFile << "func_definition : type_specifier ID LPAREN parameter_list RPAREN compound_statement"<<endl<<endl;
                         logFile <<$$->getName()<< endl<<endl;
                         
 
@@ -387,24 +387,32 @@ variable_declaration : type_specifier declaration_list SEMICOLON
                 $$ = new SymbolInfo("int", "INT");
                 logFile << "line number" << lineCount << ": " ;
                 logFile << "type_specifier : INT"<<endl<<endl ;
+                logFile << $$->getName() << endl<<endl;
+
                 }
             | FLOAT
                 {
                 $$ = new SymbolInfo("float", "FLOAT");
                 logFile << "line number" << lineCount << ": " ;
                 logFile << "type_specifier : FLOAT"<<endl<<endl ;
+                logFile << $$->getName() << endl<<endl;
+
                 }
             | DOUBLE
                 {
                 $$ = new SymbolInfo("double", "DOUBLE");
                 logFile << "line number" << lineCount << ": " ;
                 logFile << "type_specifier : DOUBLE"<<endl<<endl ;
+                logFile << $$->getName() << endl<<endl;
+
                 }
             | VOID
                 {
                 $$ = new SymbolInfo("void", "VOID");
                 logFile << "line number" << lineCount << ": " ;
                 logFile << "type_specifier : VOID"<<endl<<endl ;
+                logFile << $$->getName() << endl<<endl;
+
                 }
             ;
 
@@ -553,7 +561,7 @@ statement : variable_declaration
             }
         | RETURN expression SEMICOLON
             {
-            $$ = new SymbolInfo ("return"+$2->getName()+";", "SYMBOL_RETURN_STATEMENT");
+            $$ = new SymbolInfo ("return "+$2->getName()+";", "SYMBOL_RETURN_STATEMENT");
             logFile << "line number" << lineCount << ": " ;
             logFile << "statement : RETURN expression"<<endl<<endl ;
             logFile<< $$->getName() << endl<<endl;

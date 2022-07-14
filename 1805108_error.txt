@@ -1,1 +1,1 @@
-line number15: error: variable a already declared
+line number6: error: variable c already declared

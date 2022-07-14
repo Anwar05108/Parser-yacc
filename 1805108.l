@@ -102,6 +102,8 @@ UNFINISHED_STRING_ERROR ["][^"]*
 
 DIGIT [0-9]
 NUMBER [0-9]+
+DIGITS [0-9]+
+
 EXP [eE][ +-]?[0-9]+
 CONST_INT [0-9]+
 
@@ -109,7 +111,11 @@ FLOAT_NUM [0-9]+.[0-9]+
 FLOAT_NUM_1 ({FLOAT_NUM})({EXP})
 FLOAT_NUM_2 ({NUMBER})({EXP})
 FLOAT_NUM_3 .({NUMBER})({FLOAT_NUM_1})
-CONST_FLOAT ({FLOAT_NUM}|{FLOAT_NUM_2}|{FLOAT_NUM_3}|{FLOAT_NUM})
+
+FLOAT_1 ({DIGITS}\.{DIGITS})({EXP})?
+FLOAT_2 (\.{DIGITS})({EXP})?
+FLOAT_3 ({DIGITS})({EXP})?
+CONST_FLOAT ({FLOAT_1}|{FLOAT_2}|{FLOAT_3})
 FLOAT_NUM_ERR1 [0-9]+.[.]+[0-9]+
 FLOAT_NUM_ERR2 .[.]+[0-9]+
 FLOAT_NUM_ERR3 [.]({CONST_FLOAT})
@@ -152,7 +158,7 @@ FRAC [0-9]+
 
 
         
-{RETURN} {  }
+{RETURN} { return RETURN; }
         
         
 {INT} { return INT; }
