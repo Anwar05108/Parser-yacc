@@ -1,3 +1,6 @@
+print all scopes
+ ScopeTable: 1
+
 line number1: type_specifier : INT
 
 int
@@ -56,6 +59,11 @@ line number3: compound_statement : LCURL statement_list RCURL
 return a;
 }
 
+print all scopes
+ ScopeTable: 1.1
+
+ ScopeTable: 1
+< func ,int >
 line number3: func_definition : type_specifier ID LPAREN parameter_list RPAREN compound_statement
 
 int func ( int a ) {
@@ -555,6 +563,11 @@ b=8;
 return 0;
 }
 
+print all scopes
+ ScopeTable: 1.2
+< a ,array >< c ,array >< i ,array >< j ,array >
+ ScopeTable: 1
+< main ,int >< func ,int >
 line number14: func_definition : type_specifier ID LPAREN RPAREN compound_statement
 
 int main ( ) {
@@ -607,6 +620,6 @@ return 0;
 line number15: start: program
 print all scopes
  ScopeTable: 1
-< a ,array >< c ,array >< i ,array >< main ,int >< j ,array >< func ,int >
+< main ,int >< func ,int >
 total no. of errors: 4
 total no. of lines15

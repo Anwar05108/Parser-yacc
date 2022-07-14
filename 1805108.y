@@ -206,24 +206,23 @@ function_declaration : type_specifier ID LPAREN parameter_list RPAREN SEMICOLON
                     ;
 
 
-function_definition : type_specifier ID LPAREN parameter_list RPAREN  compound_statement
+function_definition : type_specifier ID LPAREN parameter_list RPAREN  
                         
                         {
-                        $$ = new SymbolInfo($1->getName()+" "+$2->getName()+" ( " +$4->getName()+" ) "+$6->getName() + "\n"  , "SYMBOL_FUNCTION");
                         string functionName = $2->getName();
                         string functionType = $1->getName();
                         SymbolInfo* function = symbolTable.search(functionName);
                         if(symbolTable.search(functionName) == NULL)
                         {
                             symbolTable.insert(functionName, functionType);
-                            $$->setDefined(true);
+                            // $$->setDefined(true);
                         }
                         else
                         {
                             if(function->getDefined() == false)
                             {
                                 symbolTable.insert(functionName, functionType);
-                                $$->setDefined(true);
+                                // $$->setDefined(true);
                             }
                             else
                             {
@@ -253,16 +252,24 @@ function_definition : type_specifier ID LPAREN parameter_list RPAREN  compound_s
                             symbolTable.insert(definedParameterName, definedParameterType);
                             }
                         }
+                        symbolTable.enterScope(30);
                         parameter_list.clear();
-                        logFile << "line number" << lineCount << ": " ;
-                        logFile << "func_definition : type_specifier ID LPAREN parameter_list RPAREN compound_statement"<<endl<<endl;
-                        logFile <<$$->getName()<< endl<<endl;
+                        // logFile << "line number" << lineCount << ": " ;
+                        // logFile << "func_definition : type_specifier ID LPAREN parameter_list RPAREN compound_statement"<<endl<<endl;
+                        // logFile <<$$->getName()<< endl<<endl;
                         
 
 
                         }
+                        compound_statement{
+                        $$ = new SymbolInfo($1->getName()+" "+$2->getName()+" ( " +$4->getName()+" ) "+$7->getName() + "\n"  , "SYMBOL_FUNCTION");
+
+                        logFile << "line number" << lineCount << ": " ;
+                        logFile << "func_definition : type_specifier ID LPAREN parameter_list RPAREN compound_statement"<<endl<<endl;
+                        logFile <<$$->getName()<< endl<<endl;
+                        }
                     |
-                    type_specifier ID LPAREN RPAREN compound_statement
+                    type_specifier ID LPAREN RPAREN 
                     {
                         string functionName = $2->getName();
                         string functionType = $1->getName();
@@ -276,11 +283,14 @@ function_definition : type_specifier ID LPAREN parameter_list RPAREN  compound_s
                         {
 
                         }
-                        $$ = new SymbolInfo($1->getName()+" "+$2->getName()+" ( ) "+$5->getName() + "\n"  , "SYMBOL_FUNCTION");
+                        symbolTable.enterScope(30);
+                        
+                    }
+                    compound_statement{
+                        $$ = new SymbolInfo($1->getName()+" "+$2->getName()+" ( ) "+$6->getName() + "\n"  , "SYMBOL_FUNCTION");
                         logFile << "line number" << lineCount << ": " ;
                         logFile << "func_definition : type_specifier ID LPAREN RPAREN compound_statement"<<endl<<endl;
                         logFile <<$$->getName()<< endl<<endl;
-                        
                     }
                     ;
 
@@ -343,6 +353,9 @@ compound_statement : LCURL statement_list RCURL{
     logFile << "line number" << lineCount << ": " ;
     logFile << "compound_statement : LCURL statement_list RCURL"<<endl<<endl ;
     logFile<< $$->getName() << endl<<endl;
+    symbolTable.printAllScopesInFile(logFile);
+    symbolTable.exitScope();
+    
 }
 | LCURL RCURL {
     $$ = new SymbolInfo("{\n}", "SYMBOL_COMPOUND_STATEMENT");
@@ -485,6 +498,8 @@ $$ = new SymbolInfo($1->getName(), $1->getType());
         errorFile << "error: variable " << $1->getName() << " already declared" << endl;
         errorCount++;
     }
+
+   
     
     logFile << "line number" << lineCount << ": " ;
     logFile << "declaration_list: ID LTHIRD CONST INT RTHIRD \n\n" << $$->getName() << endl<<endl;
@@ -523,9 +538,9 @@ statement : variable_declaration
             logFile << "statement : expression_statement"<<endl<<endl ;
             logFile<< $$->getName() << endl<<endl;
             }
-        | compound_statement
+        | {symbolTable.enterScope(30);}compound_statement
             {
-            $$ = $1;
+            $$ = $2;
             logFile << "line number" << lineCount << ": " ;
             logFile << "statement : compound_statement"<<endl<<endl ;
             logFile<< $$->getName() << endl<<endl;
@@ -670,7 +685,7 @@ rel_expression : simple_expression
     logFile<< $$->getName() << endl<<endl;
 }
 | simple_expression RELOP simple_expression{
-    $$ = new SymbolInfo($1->getName()+$2->getName()+$3->getName(), "SYMBOL_REL_EXPRESSION");
+    $$ = new SymbolInfo($1->getName()+$2->getName()+$3->getName(), $1->getType());
     logFile << "line number" << lineCount << ": " ;
     logFile << "expression : simple_expression RELOP simple_expression"<<endl<<endl ;
     logFile<< $$->getName() << endl<<endl;
@@ -899,7 +914,7 @@ int main(int argc, char *argv[]) {
 
     
 
-    // symbolTable.printAllScopesInFile(logFile);
+    symbolTable.printAllScopesInFile(logFile);
 
 
 	yyin = fin;
