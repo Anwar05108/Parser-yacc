@@ -1,0 +1,1 @@
+line number15: error: variable a already declared
