@@ -9,6 +9,20 @@
 
 int lineCount = 1;
 int errorCount = 0;
+vector<string> split (string s, string delimiter) {
+    size_t pos_start = 0, pos_end, delim_len = delimiter.length();
+    string token;
+    vector<string> res;
+
+    while ((pos_end = s.find (delimiter, pos_start)) != string::npos) {
+        token = s.substr (pos_start, pos_end - pos_start);
+        pos_start = pos_end + delim_len;
+        res.push_back (token);
+    }
+
+    res.push_back (s.substr (pos_start));
+    return res;
+}
 
 struct nodeVar{
     string name;
@@ -216,6 +230,13 @@ function_definition : type_specifier ID LPAREN parameter_list RPAREN
                         {
                             symbolTable.insert(functionName, functionType);
                             // $$->setDefined(true);
+                            symbolTable.enterScope(30);
+                            for(int i = 0; i < parameter_list.size(); i++)
+                            {
+                                string parameterName = parameter_list[i].name;
+                                string parameterType = parameter_list[i].type;
+                                symbolTable.insert(parameterName, parameterType);
+                            }
                         }
                         else
                         {
@@ -231,9 +252,10 @@ function_definition : type_specifier ID LPAREN parameter_list RPAREN
                                 logFile << "error: function "<<functionName<<" already defined\n\n";
                                 errorFile << "error: function "<<functionName<<" already defined\n";
                             }
-                        }
+                        
 
                         SymbolInfo *temp = symbolTable.search(functionName);
+                       symbolTable.enterScope(30);
 
                         for(int i = 0; i < temp->getParamSize(); i++ ){
                             string declaredParameterName = temp->getParameterName(i);
@@ -249,10 +271,12 @@ function_definition : type_specifier ID LPAREN parameter_list RPAREN
                                 logFile << "error: parameter "<<definedParameterName<<" has wrong type as declared\n\n";
                                 errorFile << "error: parameter "<<definedParameterName<<" has wrong type as declared\n";
                             }else{
-                            symbolTable.insert(definedParameterName, definedParameterType);
+                            cout << symbolTable.insert(definedParameterName, definedParameterType);
                             }
                         }
-                        symbolTable.enterScope(30);
+                    }
+                        // symbolTable.printAllScopesInFile(logFile);
+                        logFile<<"enterScope";
                         parameter_list.clear();
                         // logFile << "line number" << lineCount << ": " ;
                         // logFile << "func_definition : type_specifier ID LPAREN parameter_list RPAREN compound_statement"<<endl<<endl;
@@ -304,7 +328,7 @@ parameter_list : parameter_list COMMA type_specifier ID
                     logFile<< $$->getName() << endl<<endl;
                     tempNodeParam.name = $4->getName();
                     tempNodeParam.type = $3->getName();
-                    parameter_list.push_back(tempNodeParam);
+                    // parameter_list.push_back(tempNodeParam);
                     
                     }
                 | parameter_list COMMA type_specifier
@@ -315,6 +339,8 @@ parameter_list : parameter_list COMMA type_specifier ID
                     logFile<< $$->getName() << endl<<endl;
                     tempNodeParam.name = "";
                     tempNodeParam.type = $3->getName();
+                    // parameter_list.push_back(tempNodeParam);
+
 
                     }
                 | type_specifier ID
@@ -488,7 +514,7 @@ $$ = new SymbolInfo($1->getName(), $1->getType());
 | ID LTHIRD CONST_INT RTHIRD{
     $$ = new SymbolInfo($1->getName() + " [" + $3->getName()+"]", $1->getType());
     tempNodeVar.name = $1->getName();
-    tempNodeVar.type = "array";
+    tempNodeVar.type = "ID";
     tempNodeVar.arraySize = stoi($3->getName());
 
     variable_list.push_back(tempNodeVar);
@@ -801,6 +827,52 @@ factor : variable
 }
  | ID LPAREN argument_list RPAREN
 {
+    cout << "factor : ID LPAREN argument_list RPAREN"<<endl;
+    SymbolInfo *func = symbolTable.search($1->getName());
+    if(func == NULL){
+        errorFile << "line number" << lineCount << ": " ;
+        errorFile << "error: function " << $1->getName() << " not declared" << endl;
+        errorCount++;
+    }
+    else{
+        if(func->getArraySize() != -1){
+            errorFile << "line number" << lineCount << ": " ;
+            errorFile << "error: " << $1->getName() << " is not a function" << endl;
+            errorCount++;
+        }
+        else{
+            string argument_name_list = $3->getName();
+            string argument_type_list = $3->getType();
+            cout << "argument_name_list: " << argument_name_list << endl;
+            cout << "argument_type_list: " << argument_type_list << endl;
+            vector<string> argument_name_vector = split(argument_name_list, ",");
+            vector<string> argument_type_vector = split(argument_type_list, ",");
+           if(argument_name_vector.size() != func->getParamSize()){
+                cout << "argument size:"<<argument_type_vector.size() << endl;
+                cout << func->getParamSize() << endl;
+                errorFile << "line number" << lineCount << ": " ;
+                errorFile << "error: function " << $1->getName() << " expects " << func->getParamSize() << " arguments" << endl;
+                errorCount++;
+            }
+            else{
+                for(int i = 0; i < argument_name_vector.size(); i++){
+                    cout << "argument_name_vector: " << argument_name_vector[i] << endl;
+                    cout << "argument_type_vector: " << argument_type_vector[i] << endl;
+                    cout << "func->getParameterName"<< func->getParameterName(i) << endl;
+                    cout << "func->getParamType(i): " << func->getParameterType(i) << endl;
+
+                    if(argument_type_vector[i] != func->getParameterType(i)){
+                        errorFile << "line number" << lineCount << ": " ;
+                        errorFile << "error: function " << $1->getName() << " expects " << func->getParameterType(i) << " as argument " << i+1 << endl;
+                        errorCount++;
+                    }
+                }
+            }
+           }
+        }
+        
+    
+
     $$ = new SymbolInfo($1->getName()+" ( "+$3->getName()+" )", "SYMBOL_FUNCTION_CALL");
     logFile << "line number" << lineCount << ": " ;
     logFile << "factor : ID LPAREN argument_list RPAREN"<<endl<<endl ;
@@ -914,7 +986,6 @@ int main(int argc, char *argv[]) {
 
     
 
-    symbolTable.printAllScopesInFile(logFile);
 
 
 	yyin = fin;

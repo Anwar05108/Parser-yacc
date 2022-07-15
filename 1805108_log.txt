@@ -1,6 +1,3 @@
-print all scopes
- ScopeTable: 1
-
 line number1: type_specifier : INT
 
 int
@@ -13,7 +10,7 @@ line number1: parameter_list : type_specifier ID
 
 int a
 
-line number2: variable : ID
+enterScopeline number2: variable : ID
 
 a
 
@@ -61,7 +58,7 @@ return a;
 
 print all scopes
  ScopeTable: 1.1
-
+< a ,int >
  ScopeTable: 1
 < func ,int >
 line number3: func_definition : type_specifier ID LPAREN parameter_list RPAREN compound_statement
@@ -565,7 +562,7 @@ return 0;
 
 print all scopes
  ScopeTable: 1.2
-< a ,array >< c ,array >< i ,array >< j ,array >
+< a ,ID >< c ,ID >< i ,ID >< j ,ID >
  ScopeTable: 1
 < main ,int >< func ,int >
 line number14: func_definition : type_specifier ID LPAREN RPAREN compound_statement
@@ -621,5 +618,5 @@ line number15: start: program
 print all scopes
  ScopeTable: 1
 < main ,int >< func ,int >
-total no. of errors: 4
+total no. of errors: 6
 total no. of lines15
