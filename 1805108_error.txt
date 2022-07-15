@@ -1,6 +1,0 @@
-line number6: error: variable c already declared
-line number7: error: variable a is not an array
-line number7: error: variable a is out of range. array size: 0
-line number7: error: index of variable a is not of type INT
-line number9: error: modulo mulOperator can only be used with ints
-line number11: error: function func not declared

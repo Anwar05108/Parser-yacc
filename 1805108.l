@@ -98,7 +98,7 @@ INVALID_ID [0-9]*[a-zA-Z0-9]*
 STRING ["][^"]*["]
 UNFINISHED_STRING_ERROR ["][^"]*
 
-
+PRINTLN "printf"
 
 DIGIT [0-9]
 NUMBER [0-9]+
@@ -177,7 +177,7 @@ FRAC [0-9]+
         
         
 {BREAK} { return BREAK;}  
-        
+{PRINTLN} { return PRINTLN;}      
         
 {CONTINUE} {   return CONTINUE;}
         

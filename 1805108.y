@@ -63,7 +63,7 @@ void yyerror(const char* str) {
 
 %token VOID NEWLINE NUMBER LESS GREATER EQUAL IF FOR ELSE WHILE BREAK CONTINUE CASE DEFAULT SWITCH DO RETURN
 %token INCOP DECOP ASSIGNOP LOGICNOT NOT LPAREN RPAREN LCURL RCURL LTHIRD RTHIRD
-%token COMMA SEMICOLON COLON
+%token COMMA SEMICOLON COLON PRINTLN
 %token INT FLOAT DOUBLE CHAR 
 %token PLUS MINUS SLASH ASTERISK
 
@@ -606,7 +606,30 @@ statement : variable_declaration
             logFile << "line number" << lineCount << ": " ;
             logFile << "statement : RETURN expression"<<endl<<endl ;
             logFile<< $$->getName() << endl<<endl;
-            }      
+            }   
+        | PRINTLN LPAREN ID RPAREN SEMICOLON
+            {
+                SymbolInfo *temp = symbolTable.search($3->getName());
+            if(symbolTable.search($3->getName()) == NULL)
+            {
+                errorFile << "line number" << lineCount << ": " ;
+                errorFile << "error: variable " << $3->getName() << " not declared" << endl;
+                errorCount++;
+            }
+            else
+            {
+               if(temp->getArraySize() == -1){
+                    errorFile << "line number" << lineCount << ": " ;
+                    errorFile << "error: variable " << $3->getName() << " is a function" << endl;
+                    errorCount++;
+                }
+               }
+            
+            $$ = new SymbolInfo ("printf("+$3->getName()+");", "statement");
+            logFile << "line number" << lineCount << ": " ;
+            logFile << "statement : PRINTLN LPAREN expression RPAREN SEMICOLON"<<endl<<endl ;
+            logFile<< $$->getName() << endl<<endl;
+            }   
         ;
 
 
