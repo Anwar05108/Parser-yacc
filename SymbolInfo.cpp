@@ -11,6 +11,7 @@ SymbolInfo::SymbolInfo(string name,string type)
     this->next = NULL;
     this -> name = name;
     this -> type = type;
+    this -> arraySize = -1;
 
 }
 

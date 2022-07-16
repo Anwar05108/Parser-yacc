@@ -231,10 +231,10 @@ function_definition : type_specifier ID LPAREN parameter_list RPAREN
                             symbolTable.insert(functionName, functionType);
                             // $$->setDefined(true);
                             symbolTable.enterScope(30);
-                            logFile << "size of parameter list: " << parameter_list.size() << endl;
+                            // logFile << "size of parameter list: " << parameter_list.size() << endl;
                             for(int i = 0; i < parameter_list.size(); i++)
                             {
-                                logFile << "parameter_list: " << parameter_list[i].name << " " << parameter_list[i].type << endl;
+                                // logFile << "parameter_list: " << parameter_list[i].name << " " << parameter_list[i].type << endl;
                                 string parameterName = parameter_list[i].name;
                                 string parameterType = parameter_list[i].type;
                                 symbolTable.insert(parameterName, parameterType);
@@ -407,7 +407,12 @@ variable_declaration : type_specifier declaration_list SEMICOLON
                             }
                             else{
                                 for(int i = 0;i < variable_list.size();i++){
-                                    symbolTable.insert(variable_list[i].name, variable_list[i].type);
+                                    symbolTable.insert(variable_list[i].name, $1->getName());
+                                    if(variable_list[i].arraySize > 0){
+                                        SymbolInfo *temp = symbolTable.search(variable_list[i].name);
+                                        temp->setArraySize(variable_list[i].arraySize);
+                                        logFile << "array size of " << variable_list[i].name << " is " << temp->getArraySize() << endl;
+                                    }
                                 }
                             }
 
@@ -467,7 +472,7 @@ declaration_list : declaration_list COMMA ID
             {
 $$ = new SymbolInfo($1->getName() + "," +$3->getName(), $3->getType());
    tempNodeVar.name = $3->getName();
-    // tempNodeVar.type = $1->getName();
+    tempNodeVar.type = $3->getType();
     tempNodeVar.arraySize = -1;
     variable_list.push_back(tempNodeVar);
     if(symbolTable.search($3->getName()) != NULL)
@@ -484,7 +489,7 @@ $$ = new SymbolInfo($1->getName() + "," +$3->getName(), $3->getType());
 {
 $$ = new SymbolInfo($1->getName() + "," +$3->getName()+"["+$5->getName()+"]", $3->getType());
     tempNodeVar.name = $3->getName();
-    // tempNodeVar.type = "array";
+    tempNodeVar.type = "array";
 
     tempNodeVar.arraySize = stoi($5->getName());
     variable_list.push_back(tempNodeVar);
@@ -501,7 +506,11 @@ $$ = new SymbolInfo($1->getName() + "," +$3->getName()+"["+$5->getName()+"]", $3
 {
 $$ = new SymbolInfo($1->getName(), $1->getType());
     tempNodeVar.name = $1->getName();
-    tempNodeVar.type = $1->getType();
+    // SymbolInfo *temp; 
+    // temp = symbolTable.search($1->getName());
+    string type = "";
+    //  type =  temp->getType();
+    tempNodeVar.type = type;
     tempNodeVar.arraySize = -1;
         variable_list.push_back(tempNodeVar);
     if(symbolTable.search($1->getName()) != NULL)
@@ -516,7 +525,7 @@ $$ = new SymbolInfo($1->getName(), $1->getType());
 | ID LTHIRD CONST_INT RTHIRD{
     $$ = new SymbolInfo($1->getName() + " [" + $3->getName()+"]", $1->getType());
     tempNodeVar.name = $1->getName();
-    tempNodeVar.type = "ID";
+    tempNodeVar.type = "array";
     tempNodeVar.arraySize = stoi($3->getName());
     
 
@@ -652,7 +661,9 @@ expression_statement :  SEMICOLON
                     ;
 
 variable : ID{
-    $$ = new SymbolInfo($1->getName(), $1->getType());
+    SymbolInfo *temp = symbolTable.search($1->getName());
+
+    $$ = new SymbolInfo($1->getName(), temp->getType());
     logFile << "line number" << lineCount << ": " ;
     logFile << "variable : ID"<<endl<<endl ;
     logFile<< $$->getName() << endl<<endl;
@@ -666,24 +677,25 @@ variable : ID{
         errorFile << "error: variable " << $1->getName() << " not declared" << endl;
         errorCount++;
     }
-     if(currentId->getType() != "array")
+     if(currentId->getArraySize() < 0)
     {
         errorFile << "line number" << lineCount << ": " ;
         errorFile << "error: variable " << $1->getName() << " is not an array" << endl;
         errorCount++;
     }
+    else{
      if(currentId->getArraySize() <= stoi($3->getName()))
     {
         errorFile << "line number" << lineCount << ": " ;
         errorFile << "error: variable " << $1->getName() << " is out of range. array size: " << currentId->getArraySize() << endl;
         errorCount++; 
     }
-     if($3->getType() != "INT")
+     if($3->getType() != "int")
     {
         errorFile << "line number" << lineCount << ": " ;
         errorFile << "error: index of variable " << $1->getName() << " is not of type INT" << endl;
         errorCount++;
-    }
+    }}
     
     $$ = new SymbolInfo($1->getName()+"["+$3->getName()+"]", $1->getType());
     logFile << "line number" << lineCount << ": " ;
@@ -700,13 +712,32 @@ expression : logic_expression{
 }
 
 | variable ASSIGNOP logic_expression{
+    logFile << $1->getType()<< $3->getType() << endl;
+    logFile << $3->getName() << endl;
+    logFile << $3->getArraySize() << endl;
+    logFile << $3->getArraySize() << endl;
+    // SymbolInfo *leftVar = symbolTable.search($1->getName());
+    // SymbolInfo *rightVar = symbolTable.search($3->getName());
 
-    // if($1->getType() != $3->getType())
-    // {
-    //     errorFile << "line number" << lineCount << ": " ;
-    //     errorFile << "error: variable " << $1->getName()<<" "<<$1->getType() << " is not of type " << $3->getType() << endl;
-    //     errorCount++;
-    // }
+    if($1->getType() != $3->getType())
+    {
+        errorFile << "line number" << lineCount << ": " ;
+        errorFile << "error: variable " << $1->getName()<<" "<<$1->getType() << " is not of type " << $3->getType() << endl;
+        errorCount++;
+    }
+    if($1->getArraySize() != -1 && $3->getArraySize() == -1)
+    {
+        errorFile << "line number" << lineCount << ": " ;
+        errorFile << "error: variable " << $1->getName() << " is an array and cannot be assigned to" << endl;
+        errorCount++;
+    }
+    if($1->getArraySize() == -1 && $3->getArraySize() != -1)
+    {
+        errorFile << "line number" << lineCount << ": " ;
+        errorFile << "error: variable " << $1->getName() << " is not an array and cannot be assigned to" << endl;
+        errorCount++;
+    }
+   
     $$ = new SymbolInfo($1->getName()+"="+$3->getName(), "SYMBOL_ASSIGNMENT_EXPRESSION");
     logFile << "line number" << lineCount << ": " ;
     logFile << "expression : variable ASSIGNOP logic expression"<<endl<<endl ;

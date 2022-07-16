@@ -1,5 +1,8 @@
 int call(int b, int c,int a){
-	int arr[10];
+	int e,f,arr[10];
+	float g;
+	g = e;
 	arr = a;
+	e[12] = 3;
 }
 
