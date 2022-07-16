@@ -231,8 +231,10 @@ function_definition : type_specifier ID LPAREN parameter_list RPAREN
                             symbolTable.insert(functionName, functionType);
                             // $$->setDefined(true);
                             symbolTable.enterScope(30);
+                            logFile << "size of parameter list: " << parameter_list.size() << endl;
                             for(int i = 0; i < parameter_list.size(); i++)
                             {
+                                logFile << "parameter_list: " << parameter_list[i].name << " " << parameter_list[i].type << endl;
                                 string parameterName = parameter_list[i].name;
                                 string parameterType = parameter_list[i].type;
                                 symbolTable.insert(parameterName, parameterType);
@@ -328,7 +330,7 @@ parameter_list : parameter_list COMMA type_specifier ID
                     logFile<< $$->getName() << endl<<endl;
                     tempNodeParam.name = $4->getName();
                     tempNodeParam.type = $3->getName();
-                    // parameter_list.push_back(tempNodeParam);
+                    parameter_list.push_back(tempNodeParam);
                     
                     }
                 | parameter_list COMMA type_specifier
@@ -339,7 +341,7 @@ parameter_list : parameter_list COMMA type_specifier ID
                     logFile<< $$->getName() << endl<<endl;
                     tempNodeParam.name = "";
                     tempNodeParam.type = $3->getName();
-                    // parameter_list.push_back(tempNodeParam);
+                    parameter_list.push_back(tempNodeParam);
 
 
                     }
@@ -516,6 +518,7 @@ $$ = new SymbolInfo($1->getName(), $1->getType());
     tempNodeVar.name = $1->getName();
     tempNodeVar.type = "ID";
     tempNodeVar.arraySize = stoi($3->getName());
+    
 
     variable_list.push_back(tempNodeVar);
     if(symbolTable.search($1->getName()) != NULL)
