@@ -12,4 +12,4 @@ g++ -fpermissive -w -c -o l.o lex.yy.c
 echo 'Generated the scanner object file'
 g++  y.o l.o -lfl -o 1805108 
 echo 'All ready, running'
-./1805108 input1.txt
+./1805108 input5.txt

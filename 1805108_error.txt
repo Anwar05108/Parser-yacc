@@ -1,3 +1,0 @@
-line number4: error: variable g float is not of type int
-line number6: error: variable e is not an array
-line number6: error: variable e[12] ID is not of type CONST_INT

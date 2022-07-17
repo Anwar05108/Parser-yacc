@@ -2,320 +2,65 @@ line number1: type_specifier : INT
 
 int
 
-line number1: type_specifier : INT
+line number1: declaration_list: ID 
 
-int
+x
 
-line number1: parameter_list : type_specifier ID
+line number1: declaration_list: declaration_list COMMA ID 
 
-int b
+x,y
 
-line number1: type_specifier : INT
+line number1: declaration_list: declaration_list COMMA ID 
 
-int
+x,y,z
 
-line number1: parameter_list : parameter_list COMMA type_specifier ID
+line number1: variable_declaration: type_specifier declaration_list SEMICOLON 
 
-int b,int c
+int x,y,z;
 
-line number1: type_specifier : INT
+line number1: unit: variable_declaration 
 
-int
+int x,y,z;
 
-line number1: parameter_list : parameter_list COMMA type_specifier ID
+line number1: program:  unit 
 
-int b,int c,int a
+int x,y,z;
 
-enterScopeline number2: type_specifier : INT
-
-int
-
-line number2: declaration_list: ID 
-
-e
-
-line number2: declaration_list: declaration_list COMMA ID 
-
-e,f
-
-line number2: declaration_list: declaration_list COMMA ID LTHIRD CONST INT RTHIRD 
-
-e,f,arr[10]
-
-array size of arr is 10
-line number2: variable_declaration: type_specifier declaration_list SEMICOLON 
-
-int e,f,arr[10];
-
-line number2: statement : variable_declaration
-
-int e,f,arr[10];
-
-line number2: statement_list : statement
-
-int e,f,arr[10];
-
-line number3: type_specifier : FLOAT
+line number1: type_specifier : FLOAT
 
 float
 
-line number3: declaration_list: ID 
-
-g
-
-line number3: variable_declaration: type_specifier declaration_list SEMICOLON 
-
-float g;
-
-line number3: statement : variable_declaration
-
-float g;
-
-line number3: statement_list : statement_list statement
-
-int e,f,arr[10];
-float g;
-
-line number4: variable : ID
-
-g
-
-line number4: variable : ID
-
-e
-
-line number4: factor : variable
-
-e
-
-line number4: unary_expression : factor
-
-e
-
-line number4: term : unary_expression
-
-e
-
-line number4: simple_expression : term
-
-e
-
-line number4: expression : simple expression
-
-e
-
-line number4: logic_expression : rel_expression
-
-e
-
-floatint
-e
--1
--1
-line number4: expression : variable ASSIGNOP logic expression
-
-g=e
-
-line number4: expression_statement : expression SEMICOLON
-
-g=e;
-
-line number4: statement : expression_statement
-
-g=e;
-
-line number4: statement_list : statement_list statement
-
-int e,f,arr[10];
-float g;
-g=e;
-
-line number5: variable : ID
-
-arr
-
-line number5: variable : ID
+line number1: declaration_list: ID 
 
 a
 
-line number5: factor : variable
+line number1: variable_declaration: type_specifier declaration_list SEMICOLON 
 
-a
+float a;
 
-line number5: unary_expression : factor
+line number1: unit: variable_declaration 
 
-a
+float a;
 
-line number5: term : unary_expression
+line number1: program: program unit 
 
-a
+int x,y,z;
+float a;
 
-line number5: simple_expression : term
+line number3: type_specifier : INT
 
-a
+int
 
-line number5: expression : simple expression
+line number3: type_specifier : INT
 
-a
+int
 
-line number5: logic_expression : rel_expression
+line number3: parameter_list : type_specifier
 
-a
-
-intint
-a
--1
--1
-line number5: expression : variable ASSIGNOP logic expression
-
-arr=a
-
-line number5: expression_statement : expression SEMICOLON
-
-arr=a;
-
-line number5: statement : expression_statement
-
-arr=a;
-
-line number5: statement_list : statement_list statement
-
-int e,f,arr[10];
-float g;
-g=e;
-arr=a;
-
-line number6: factor : CONST_INT
-
-12
-
-line number6: unary_expression : factor
-
-12
-
-line number6: term : unary_expression
-
-12
-
-line number6: simple_expression : term
-
-12
-
-line number6: expression : simple expression
-
-12
-
-line number6: logic_expression : rel_expression
-
-12
-
-line number6: expression : logic expression
-
-12
-
-line number6: variable : ID LTHIRD expression RTHIRD
-
-e[12]
-
-line number6: factor : CONST_INT
-
-3
-
-line number6: unary_expression : factor
-
-3
-
-line number6: term : unary_expression
-
-3
-
-line number6: simple_expression : term
-
-3
-
-line number6: expression : simple expression
-
-3
-
-line number6: logic_expression : rel_expression
-
-3
-
-IDCONST_INT
-3
--1
--1
-line number6: expression : variable ASSIGNOP logic expression
-
-e[12]=3
-
-line number6: expression_statement : expression SEMICOLON
-
-e[12]=3;
-
-line number6: statement : expression_statement
-
-e[12]=3;
-
-line number6: statement_list : statement_list statement
-
-int e,f,arr[10];
-float g;
-g=e;
-arr=a;
-e[12]=3;
-
-line number7: compound_statement : LCURL statement_list RCURL
-
-{
-int e,f,arr[10];
-float g;
-g=e;
-arr=a;
-e[12]=3;
-}
+int
 
 print all scopes
- ScopeTable: 1.1
-< a ,int >< b ,int >< c ,int >< arr ,int >< e ,int >< f ,int >< g ,float >
  ScopeTable: 1
-< call ,int >
-line number7: func_definition : type_specifier ID LPAREN parameter_list RPAREN compound_statement
-
-int call ( int b,int c,int a ) {
-int e,f,arr[10];
-float g;
-g=e;
-arr=a;
-e[12]=3;
-}
-
-
-line number7: unit: function_definition 
-
-int call ( int b,int c,int a ) {
-int e,f,arr[10];
-float g;
-g=e;
-arr=a;
-e[12]=3;
-}
-
-
-line number7: program:  unit 
-
-int call ( int b,int c,int a ) {
-int e,f,arr[10];
-float g;
-g=e;
-arr=a;
-e[12]=3;
-}
-
-
-line number9: start: program
-print all scopes
- ScopeTable: 1
-< call ,int >
-total no. of errors: 3
-total no. of lines9
+< x ,int >< y ,int >< z ,int >< a ,float >
+total no. of errors: 0
+total no. of lines3

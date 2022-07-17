@@ -177,12 +177,19 @@ function_declaration : type_specifier ID LPAREN parameter_list RPAREN SEMICOLON
                         logFile << endl << endl;
 
                         SymbolInfo *temp = symbolTable.search(functionName);
+                        if(temp == NULL)
+                        {
+                            errorFile<<"error: function "<<functionName<<" not found\n";
+                        }
+                        else
+                        {
 
                         for(int i = 0; i < parameter_list.size(); i++)
                         {
                             string parameterName = parameter_list[i].name;
                             string parameterType = parameter_list[i].type;
                             temp->insertParameter(parameterName, parameterType);
+                        }
                         }
 
                       
@@ -259,6 +266,8 @@ function_definition : type_specifier ID LPAREN parameter_list RPAREN
                         SymbolInfo *temp = symbolTable.search(functionName);
                        symbolTable.enterScope(30);
 
+                       if(temp != NULL){
+
                         for(int i = 0; i < temp->getParamSize(); i++ ){
                             string declaredParameterName = temp->getParameterName(i);
                             string declaredParameterType = temp->getParameterType(i);
@@ -275,7 +284,7 @@ function_definition : type_specifier ID LPAREN parameter_list RPAREN
                             }else{
                             cout << symbolTable.insert(definedParameterName, definedParameterType);
                             }
-                        }
+                        }}
                     }
                         // symbolTable.printAllScopesInFile(logFile);
                         logFile<<"enterScope";
@@ -410,7 +419,10 @@ variable_declaration : type_specifier declaration_list SEMICOLON
                                     symbolTable.insert(variable_list[i].name, $1->getName());
                                     if(variable_list[i].arraySize > 0){
                                         SymbolInfo *temp = symbolTable.search(variable_list[i].name);
-                                        temp->setArraySize(variable_list[i].arraySize);
+                                        if(temp != NULL){
+                                            temp->setArraySize(variable_list[i].arraySize);
+                                        }
+                                        // temp->setArraySize(variable_list[i].arraySize);
                                         logFile << "array size of " << variable_list[i].name << " is " << temp->getArraySize() << endl;
                                     }
                                 }
@@ -430,7 +442,7 @@ variable_declaration : type_specifier declaration_list SEMICOLON
 
                     type_specifier : INT
                 {
-                $$ = new SymbolInfo("int", "INT");
+                $$ = new SymbolInfo("int", "int");
                 logFile << "line number" << lineCount << ": " ;
                 logFile << "type_specifier : INT"<<endl<<endl ;
                 logFile << $$->getName() << endl<<endl;
@@ -438,7 +450,7 @@ variable_declaration : type_specifier declaration_list SEMICOLON
                 }
             | FLOAT
                 {
-                $$ = new SymbolInfo("float", "FLOAT");
+                $$ = new SymbolInfo("float", "float");
                 logFile << "line number" << lineCount << ": " ;
                 logFile << "type_specifier : FLOAT"<<endl<<endl ;
                 logFile << $$->getName() << endl<<endl;
@@ -446,7 +458,7 @@ variable_declaration : type_specifier declaration_list SEMICOLON
                 }
             | DOUBLE
                 {
-                $$ = new SymbolInfo("double", "DOUBLE");
+                $$ = new SymbolInfo("double", "double");
                 logFile << "line number" << lineCount << ": " ;
                 logFile << "type_specifier : DOUBLE"<<endl<<endl ;
                 logFile << $$->getName() << endl<<endl;
@@ -630,12 +642,13 @@ statement : variable_declaration
             }
             else
             {
-               if(temp->getArraySize() == -1){
+                if(temp != NULL){
+               if(temp->getArraySize() == -2){
                     errorFile << "line number" << lineCount << ": " ;
                     errorFile << "error: variable " << $3->getName() << " is a function" << endl;
                     errorCount++;
                 }
-               }
+               }}
             
             $$ = new SymbolInfo ("printf("+$3->getName()+");", "statement");
             logFile << "line number" << lineCount << ": " ;
@@ -662,8 +675,13 @@ expression_statement :  SEMICOLON
 
 variable : ID{
     SymbolInfo *temp = symbolTable.search($1->getName());
+    if(temp != NULL){
 
     $$ = new SymbolInfo($1->getName(), temp->getType());
+    }
+    else{
+        $$ = new SymbolInfo($1->getName(), "undeclared");
+    }
     logFile << "line number" << lineCount << ": " ;
     logFile << "variable : ID"<<endl<<endl ;
     logFile<< $$->getName() << endl<<endl;
@@ -677,6 +695,7 @@ variable : ID{
         errorFile << "error: variable " << $1->getName() << " not declared" << endl;
         errorCount++;
     }
+    else{
      if(currentId->getArraySize() < 0)
     {
         errorFile << "line number" << lineCount << ": " ;
@@ -695,7 +714,7 @@ variable : ID{
         errorFile << "line number" << lineCount << ": " ;
         errorFile << "error: index of variable " << $1->getName() << " is not of type INT" << endl;
         errorCount++;
-    }}
+    }}}
     
     $$ = new SymbolInfo($1->getName()+"["+$3->getName()+"]", $1->getType());
     logFile << "line number" << lineCount << ": " ;
@@ -718,25 +737,47 @@ expression : logic_expression{
     logFile << $3->getArraySize() << endl;
     // SymbolInfo *leftVar = symbolTable.search($1->getName());
     // SymbolInfo *rightVar = symbolTable.search($3->getName());
-
-    if($1->getType() != $3->getType())
+    if(($1->getType() == "int") || ($3->getType() == "float")){
+        if($1->getArraySize()>0){
+        if($3 -> getArraySize() == -1){
+            errorFile << "line number" << lineCount << ": " ;
+            errorFile << "error: variable " << $1->getName()<<" "<<$1->getType() << " is an array and cannot be assigned to a variable" << endl;
+            errorCount++;
+        }
+    }
+    else if($1->getType() != $3->getType())
     {
         errorFile << "line number" << lineCount << ": " ;
         errorFile << "error: variable " << $1->getName()<<" "<<$1->getType() << " is not of type " << $3->getType() << endl;
         errorCount++;
     }
-    if($1->getArraySize() != -1 && $3->getArraySize() == -1)
-    {
+    }
+    else{
+    if($1->getType() == "undeclared"){
         errorFile << "line number" << lineCount << ": " ;
-        errorFile << "error: variable " << $1->getName() << " is an array and cannot be assigned to" << endl;
+        errorFile << "error: variable " << $1->getName() << " not declared" << endl;
         errorCount++;
     }
-    if($1->getArraySize() == -1 && $3->getArraySize() != -1)
-    {
+    if($3->getType() == "undeclared"){
         errorFile << "line number" << lineCount << ": " ;
-        errorFile << "error: variable " << $1->getName() << " is not an array and cannot be assigned to" << endl;
+        errorFile << "error: variable " << $3->getName() << " not declared" << endl;
         errorCount++;
-    }
+    }}
+   
+    
+    
+    // if($1->getArraySize() != -1 && $3->getArraySize() == -1)
+    // {
+    //     errorFile << "line number" << lineCount << ": " ;
+    //     errorFile << "error: variable " << $1->getName() << " is an array and cannot be assigned to" << endl;
+    //     errorCount++;
+    // }
+    // if($1->getArraySize() == -1 && $3->getArraySize() != -1)
+    // {
+    //     errorFile << "line number" << lineCount << ": " ;
+    //     errorFile << "error: variable " << $1->getName() << " is not an array and cannot be assigned to" << endl;
+    //     errorCount++;
+    // }
    
     $$ = new SymbolInfo($1->getName()+"="+$3->getName(), "SYMBOL_ASSIGNMENT_EXPRESSION");
     logFile << "line number" << lineCount << ": " ;
@@ -752,7 +793,16 @@ logic_expression : rel_expression {
     logFile<< $$->getName() << endl<<endl;
 }
 | rel_expression LOGICOP rel_expression {
-    $$ = new SymbolInfo($1->getName()+$2->getName()+$3->getName(), "SYMBOL_LOGIC_EXPRESSION");
+    string type = "int";
+    if($1->getType() != "int" || $3->getType() != "int")
+    {
+        type = "error";
+        errorFile << "line number" << lineCount << ": " ;
+        errorFile << "error: operands of logical operator are not of type INT" << endl;
+        errorCount++;
+    }
+   
+    $$ = new SymbolInfo($1->getName()+$2->getName()+$3->getName(), type);
     logFile << "line number" << lineCount << ": " ;
     logFile << "logic_expression : logic_expression AND rel_expression"<<endl<<endl ;
     logFile<< $$->getName() << endl<<endl;
@@ -784,7 +834,7 @@ simple_expression : term{
 {
     //problem in getting the plus and minus
     string type;
-    if($1->getType() == "INT" && $3->getType() == "INT")
+    if($1->getType() == "int" && $3->getType() == "int")
     {
         type = "int";
     }
@@ -844,7 +894,7 @@ term : unary_expression {
     
 
 
-    $$ = new SymbolInfo($1->getName()+$2->getName()+$3->getName(), "SYMBOL_MUL_EXPRESSION");
+    $$ = new SymbolInfo($1->getName()+$2->getName()+$3->getName(), type);
     logFile << "line number" << lineCount << ": " ;
     logFile << "term : term MULOP unary_expression"<<endl<<endl ;
     logFile<< $$->getName() << endl<<endl;
@@ -853,14 +903,14 @@ term : unary_expression {
 
 unary_expression: ADDOP unary_expression
 {
-    $$ = new SymbolInfo($1->getName()+$2->getName(), "SYMBOL_UNARY_EXPRESSION");
+    $$ = new SymbolInfo($1->getName()+$2->getName(), $2->getType());
     logFile << "line number" << lineCount << ": " ;
     logFile << "expression : ADDOP unary expression"<<endl<<endl ;
     logFile<< $$->getName() << endl<<endl;
 }
 | NOT unary_expression
 {
-    $$ = new SymbolInfo(" !"+$2->getName(), "SYMBOL_UNARY_EXPRESSION");
+    $$ = new SymbolInfo(" !"+$2->getName(), $2->getType());
     logFile << "line number" << lineCount << ": " ;
     logFile << "expression : NOT unary_expression"<<endl<<endl ;
     logFile<< $$->getName() << endl<<endl;
@@ -886,13 +936,16 @@ factor : variable
 {
     cout << "factor : ID LPAREN argument_list RPAREN"<<endl;
     SymbolInfo *func = symbolTable.search($1->getName());
+    string type = "";
     if(func == NULL){
         errorFile << "line number" << lineCount << ": " ;
         errorFile << "error: function " << $1->getName() << " not declared" << endl;
         errorCount++;
+        type = "undeclared";
     }
     else{
-        if(func->getArraySize() != -1){
+        type = func->getType();
+        if(func->getArraySize() != -2){
             errorFile << "line number" << lineCount << ": " ;
             errorFile << "error: " << $1->getName() << " is not a function" << endl;
             errorCount++;
@@ -930,14 +983,14 @@ factor : variable
         
     
 
-    $$ = new SymbolInfo($1->getName()+" ( "+$3->getName()+" )", "SYMBOL_FUNCTION_CALL");
+    $$ = new SymbolInfo($1->getName()+" ( "+$3->getName()+" )",type );
     logFile << "line number" << lineCount << ": " ;
     logFile << "factor : ID LPAREN argument_list RPAREN"<<endl<<endl ;
     logFile<< $$->getName() << endl<<endl;
 }
 | LPAREN expression RPAREN
 {
-    $$ = new SymbolInfo(" ( "+$2->getName()+" ) ", "SYMBOL_EXPRESSION");
+    $$ = new SymbolInfo(" ( "+$2->getName()+" ) ", $2->getType());
     logFile << "line number" << lineCount << ": " ;
     logFile << "factor : LPAREN expression RPAREN"<<endl<<endl ;
     logFile<< $$->getName() << endl<<endl;
@@ -958,7 +1011,7 @@ factor : variable
 
 | variable INCOP
 {
-    $$ = new SymbolInfo($1->getName()+"++", "SYMBOL_INC_EXPRESSION");
+    $$ = new SymbolInfo($1->getName()+"++", $1->getType());
     logFile << "line number" << lineCount << ": " ;
     logFile << "factor : variable INCOP"<<endl<<endl ;
     logFile<< $$->getName() << endl<<endl;
@@ -966,7 +1019,7 @@ factor : variable
 
 | variable DECOP
 {
-    $$ = new SymbolInfo($1->getName()+"--", "SYMBOL_DEC_EXPRESSION");
+    $$ = new SymbolInfo($1->getName()+"--", $1->getType());
     logFile << "line number" << lineCount << ": " ;
     logFile << "factor : variable DECOP"<<endl<<endl ;
     logFile<< $$->getName() << endl<<endl;
@@ -994,7 +1047,7 @@ argument_list : arguments{
 
  arguments: arguments COMMA logic_expression
 {
-    $$ = new SymbolInfo($1->getName()+$3->getName(), "SYMBOL_ARGUMENTS");
+    $$ = new SymbolInfo($1->getName()+","+$3->getName(), $1->getType()+","+$3->getType());
     logFile << "line number" << lineCount << ": " ;
     logFile << "argument_list : arguments COMMA logic_expression"<<endl<<endl ;
     logFile<< $$->getName() << endl<<endl;
@@ -1002,7 +1055,7 @@ argument_list : arguments{
 | logic_expression
 {
     $$ = $1;
-    $$ = new SymbolInfo($1->getName(), "SYMBOL_ARGUMENTS");
+    // $$ = new SymbolInfo($1->getName(), "SYMBOL_ARGUMENTS");
     logFile << "line number" << lineCount << ": " ;
     logFile << "argument_list : logic_expression"<<endl<<endl ;
     logFile<< $$->getName() << endl<<endl;

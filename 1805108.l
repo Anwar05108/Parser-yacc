@@ -197,13 +197,13 @@ FRAC [0-9]+
 {DOUBLE} { return DOUBLE;}
         
 {CONST_INT} {
-        SymbolInfo *symbolInfo = new SymbolInfo(yytext,"CONST_INT");
+        SymbolInfo *symbolInfo = new SymbolInfo(yytext,"int");
         yylval.symbolInfo = (YYSTYPE)symbolInfo;
 
                 return CONST_INT;}     
 
 {CONST_FLOAT} {
-        SymbolInfo *symbolInfo = new SymbolInfo(yytext,"CONST_FLOAT");
+        SymbolInfo *symbolInfo = new SymbolInfo(yytext,"float");
         yylval.symbolInfo = (YYSTYPE)symbolInfo;
                 return CONST_FLOAT;}
         
@@ -211,7 +211,7 @@ FRAC [0-9]+
 {FLOAT_ERR} {errorCount++;}
 
 {CONST_CHAR} {
-        SymbolInfo *symbolInfo = new SymbolInfo(yytext, "CONST_CHAR");
+        SymbolInfo *symbolInfo = new SymbolInfo(yytext, "char");
         yylval.symbolInfo = (YYSTYPE)symbolInfo;
                 return CONST_CHAR;}     
 {CHAR_ERROR} {errorCount++;}

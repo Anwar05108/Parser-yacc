@@ -1120,7 +1120,7 @@ case 21:
 YY_RULE_SETUP
 #line 199 "1805108.l"
 {
-        SymbolInfo *symbolInfo = new SymbolInfo(yytext,"CONST_INT");
+        SymbolInfo *symbolInfo = new SymbolInfo(yytext,"int");
         yylval.symbolInfo = (YYSTYPE)symbolInfo;
 
                 return CONST_INT;}     
@@ -1129,7 +1129,7 @@ case 22:
 YY_RULE_SETUP
 #line 205 "1805108.l"
 {
-        SymbolInfo *symbolInfo = new SymbolInfo(yytext,"CONST_FLOAT");
+        SymbolInfo *symbolInfo = new SymbolInfo(yytext,"float");
         yylval.symbolInfo = (YYSTYPE)symbolInfo;
                 return CONST_FLOAT;}
 	YY_BREAK
@@ -1142,7 +1142,7 @@ case 24:
 YY_RULE_SETUP
 #line 213 "1805108.l"
 {
-        SymbolInfo *symbolInfo = new SymbolInfo(yytext, "CONST_CHAR");
+        SymbolInfo *symbolInfo = new SymbolInfo(yytext, "char");
         yylval.symbolInfo = (YYSTYPE)symbolInfo;
                 return CONST_CHAR;}     
 	YY_BREAK
