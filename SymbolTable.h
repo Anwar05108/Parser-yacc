@@ -22,5 +22,6 @@ public:
     ScopeTable* getParentScope();
     ScopeTable* getScopeTable();
     void printAllScopesInFile(ofstream&);
+    SymbolInfo* searchInGlobalScope(string);;
     
 };

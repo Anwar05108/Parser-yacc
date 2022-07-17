@@ -25,11 +25,11 @@ ScopeTable::~ScopeTable()
 
     for (int i = 0; i < this->size; i++)
     {
-    
+
         SymbolInfo *temp = this->bucket[i];
         while (temp != NULL)
         {
-    
+
             SymbolInfo *temp2 = temp;
             temp = temp->getNext();
             delete temp2;
@@ -275,14 +275,28 @@ void ScopeTable::printInFile(ofstream &outFile)
     {
 
         SymbolInfo *temp = this->bucket[i];
+
+       
+        if (temp != NULL)
+        {
+            if (temp->getName() != "")
+            {   outFile << endl;
+                outFile << i << "--> ";
+               
+            }
+        }
+
         while (temp != NULL)
         {
-
-            outFile << "< " << temp->getName() << " ," << temp->getType() << " >";
+            if (temp->getName() != "")
+            {
+                outFile << "< " << temp->getName() << " ," << "ID" << " >";
+            }
             temp = temp->getNext();
         }
-        // outFile << endl;
+       
     }
+    // outFile << endl;
 }
 // {
 

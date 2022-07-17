@@ -183,6 +183,8 @@ function_declaration : type_specifier ID LPAREN parameter_list RPAREN SEMICOLON
                         }
                         else
                         {
+                            temp->setDefined(false);
+                            temp->setArraySize(-2);
 
                         for(int i = 0; i < parameter_list.size(); i++)
                         {
@@ -205,7 +207,10 @@ function_declaration : type_specifier ID LPAREN parameter_list RPAREN SEMICOLON
                         if(symbolTable.search(functionName) == NULL)
                         {
                             symbolTable.insert(functionName, functionType);
-                            $$->setDefined(false);
+                            SymbolInfo *temp = symbolTable.search(functionName);
+                            temp->setDefined(false);
+                            temp->setArraySize(-2);
+                            // $$->setDefined(false);
                         }
                         else
                         {
@@ -236,6 +241,9 @@ function_definition : type_specifier ID LPAREN parameter_list RPAREN
                         if(symbolTable.search(functionName) == NULL)
                         {
                             symbolTable.insert(functionName, functionType);
+                            SymbolInfo *temp = symbolTable.search(functionName);
+                            temp->setArraySize(-2);
+                            temp->setDefined(true);
                             // $$->setDefined(true);
                             symbolTable.enterScope(30);
                             // logFile << "size of parameter list: " << parameter_list.size() << endl;
@@ -252,6 +260,8 @@ function_definition : type_specifier ID LPAREN parameter_list RPAREN
                             if(function->getDefined() == false)
                             {
                                 symbolTable.insert(functionName, functionType);
+                                 function->setArraySize(-2);
+                            function->setDefined(true);
                                 // $$->setDefined(true);
                             }
                             else
@@ -259,6 +269,8 @@ function_definition : type_specifier ID LPAREN parameter_list RPAREN
                                 errorCount++;
                                 logFile << "line number" << lineCount << ": " ;
                                 logFile << "error: function "<<functionName<<" already defined\n\n";
+                                errorFile << "line number" << lineCount << ": " ;
+                                
                                 errorFile << "error: function "<<functionName<<" already defined\n";
                             }
                         
@@ -282,7 +294,7 @@ function_definition : type_specifier ID LPAREN parameter_list RPAREN
                                 logFile << "error: parameter "<<definedParameterName<<" has wrong type as declared\n\n";
                                 errorFile << "error: parameter "<<definedParameterName<<" has wrong type as declared\n";
                             }else{
-                            cout << symbolTable.insert(definedParameterName, definedParameterType);
+                             symbolTable.insert(definedParameterName, definedParameterType);
                             }
                         }}
                     }
@@ -312,11 +324,29 @@ function_definition : type_specifier ID LPAREN parameter_list RPAREN
                         {
 
                             symbolTable.insert(functionName, functionType);
+                            SymbolInfo *temp = symbolTable.search(functionName);
+                            temp->setDefined(false);
+                            temp->setArraySize(-2);
 
                         }
                         else
                         {
+                                if(symbolTable.search(functionName)->getDefined() == false)
+                                {
+                                    symbolTable.insert(functionName, functionType);
+                                    SymbolInfo *temp = symbolTable.search(functionName);
+                                    temp->setDefined(false);
+                                    temp->setArraySize(-2);
+                                }
+                                else
+                                {
+                                    errorCount++;
+                                    logFile << "line number" << lineCount << ": " ;
+                                    logFile << "error: function "<<functionName<<" already defined\n\n";
+                                errorFile << "line number" << lineCount << ": " ;
 
+                                    errorFile << "error: function "<<functionName<<" already defined\n";
+                                }
                         }
                         symbolTable.enterScope(30);
                         
@@ -731,13 +761,26 @@ expression : logic_expression{
 }
 
 | variable ASSIGNOP logic_expression{
-    logFile << $1->getType()<< $3->getType() << endl;
-    logFile << $3->getName() << endl;
-    logFile << $3->getArraySize() << endl;
-    logFile << $3->getArraySize() << endl;
+    // logFile << $1->getType()<< $3->getType() << endl;
+    // logFile << $3->getName() << endl;
+    // logFile << $3->getArraySize() << endl;
+    // logFile << $3->getArraySize() << endl;
     // SymbolInfo *leftVar = symbolTable.search($1->getName());
     // SymbolInfo *rightVar = symbolTable.search($3->getName());
-    if(($1->getType() == "int") || ($3->getType() == "float")){
+    if($1->getType() == "undeclared" || $3->getType() == "undeclared")
+    {
+      if($1->getType() == "undeclared"){
+        errorFile << "line number" << lineCount << ": " ;
+        errorFile << "error: variable " << $1->getName() << " not declared" << endl;
+        errorCount++;
+    }
+    if($3->getType() == "undeclared"){
+        errorFile << "line number" << lineCount << ": " ;
+        errorFile << "error: variable " << $3->getName() << " not declared" << endl;
+        errorCount++;
+    } 
+    }  
+    else if((($1->getType() == "int") || ($3->getType() == "float")) && (($3->getType() == "int") || ($1->getType() == "float"))){
         if($1->getArraySize()>0){
         if($3 -> getArraySize() == -1){
             errorFile << "line number" << lineCount << ": " ;
@@ -752,17 +795,7 @@ expression : logic_expression{
         errorCount++;
     }
     }
-    else{
-    if($1->getType() == "undeclared"){
-        errorFile << "line number" << lineCount << ": " ;
-        errorFile << "error: variable " << $1->getName() << " not declared" << endl;
-        errorCount++;
-    }
-    if($3->getType() == "undeclared"){
-        errorFile << "line number" << lineCount << ": " ;
-        errorFile << "error: variable " << $3->getName() << " not declared" << endl;
-        errorCount++;
-    }}
+    
    
     
     
@@ -934,8 +967,8 @@ factor : variable
 }
  | ID LPAREN argument_list RPAREN
 {
-    cout << "factor : ID LPAREN argument_list RPAREN"<<endl;
-    SymbolInfo *func = symbolTable.search($1->getName());
+    // cout << "factor : ID LPAREN argument_list RPAREN"<<endl;
+    SymbolInfo *func = symbolTable.searchInGlobalScope($1->getName());
     string type = "";
     if(func == NULL){
         errorFile << "line number" << lineCount << ": " ;
@@ -953,23 +986,23 @@ factor : variable
         else{
             string argument_name_list = $3->getName();
             string argument_type_list = $3->getType();
-            cout << "argument_name_list: " << argument_name_list << endl;
-            cout << "argument_type_list: " << argument_type_list << endl;
+            // cout << "argument_name_list: " << argument_name_list << endl;
+            // cout << "argument_type_list: " << argument_type_list << endl;
             vector<string> argument_name_vector = split(argument_name_list, ",");
             vector<string> argument_type_vector = split(argument_type_list, ",");
            if(argument_name_vector.size() != func->getParamSize()){
-                cout << "argument size:"<<argument_type_vector.size() << endl;
-                cout << func->getParamSize() << endl;
+                // cout << "argument size:"<<argument_type_vector.size() << endl;
+                // cout << func->getParamSize() << endl;
                 errorFile << "line number" << lineCount << ": " ;
                 errorFile << "error: function " << $1->getName() << " expects " << func->getParamSize() << " arguments" << endl;
                 errorCount++;
             }
             else{
                 for(int i = 0; i < argument_name_vector.size(); i++){
-                    cout << "argument_name_vector: " << argument_name_vector[i] << endl;
-                    cout << "argument_type_vector: " << argument_type_vector[i] << endl;
-                    cout << "func->getParameterName"<< func->getParameterName(i) << endl;
-                    cout << "func->getParamType(i): " << func->getParameterType(i) << endl;
+                    // cout << "argument_name_vector: " << argument_name_vector[i] << endl;
+                    // cout << "argument_type_vector: " << argument_type_vector[i] << endl;
+                    // cout << "func->getParameterName"<< func->getParameterName(i) << endl;
+                    // cout << "func->getParamType(i): " << func->getParameterType(i) << endl;
 
                     if(argument_type_vector[i] != func->getParameterType(i)){
                         errorFile << "line number" << lineCount << ": " ;

@@ -61,6 +61,10 @@ int
 
 print all scopes
  ScopeTable: 1
-< x ,int >< y ,int >< z ,int >< a ,float >
+
+0--> < x ,ID >
+1--> < y ,ID >
+2--> < z ,ID >
+7--> < a ,ID >
 total no. of errors: 0
 total no. of lines3

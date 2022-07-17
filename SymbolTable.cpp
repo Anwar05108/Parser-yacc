@@ -123,3 +123,19 @@ ScopeTable* SymbolTable::getScopeTable()
 {
     return scopeTable;
 }
+
+
+SymbolInfo* SymbolTable::searchInGlobalScope(string name)
+{
+    ScopeTable *temp = scopeTable;
+    while (temp != NULL)
+    {
+        SymbolInfo *info = temp->search(name);
+        if (info != NULL)
+        {
+            return info;
+        }
+        temp = temp->getParentScope();
+    }
+    return NULL;
+}
