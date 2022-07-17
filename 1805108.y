@@ -5,7 +5,7 @@
 #include<fstream>
 #include<iostream>
 #include<bits/stdc++.h>
-#include"Parameter.h"
+
 
 int lineCount = 1;
 int errorCount = 0;
